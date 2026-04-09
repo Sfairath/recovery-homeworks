@@ -1,0 +1,3 @@
+#Игнорировать
+.terraform.lock.hcl
+cloud-init.yml
