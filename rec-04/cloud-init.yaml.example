@@ -1,0 +1,33 @@
+#cloud-config
+datasource:
+  Ec2:
+    strict_id: false
+ssh_pwauth: no
+users:
+  - name: my_user
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - my_ssh_key
+write_files:
+  - path: "/usr/local/etc/startup.sh"
+    permissions: "755"
+    content: |
+      #!/bin/bash
+
+      apt update
+      apt install -y nginx
+
+      # Получаем IP адрес
+      IP_ADDR=$(ip -4 a show eth0 | grep -oP '(?<=inet )\d+\.\d+\.\d+\.\d+')
+
+      # Создаем index.html
+      cat > /var/www/html/index.nginx-debian.html << EOF
+      I am ${HOSTNAME}, my IPv4 is ${IP_ADDR}
+      EOF
+
+      systemctl start nginx
+      systemctl enable nginx
+    defer: true
+runcmd:
+  - ["/usr/local/etc/startup.sh"]
